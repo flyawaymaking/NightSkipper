@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+}
+
+group = 'com.flyaway.skipper'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = "papermc"
+        url = "https://repo.papermc.io/repository/maven-public/"
+    }
+    maven {
+        url = uri("https://repo.lucko.me/")
+    }
+}
+
+dependencies {
+    compileOnly 'io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT'
+    compileOnly 'net.luckperms:api:5.4'
+}
+
+tasks.jar {
+    archiveBaseName.set("NightSkipper")
+}

@@ -1,0 +1,8 @@
+name: NightSkipper
+version: 1.0.0
+main: com.flyaway.skipper.NightSkipper
+api-version: 1.21
+description: Пропускает ночь, когда спит половина игроков
+author: FlyAwayMaking
+website: https://github.com/flyawaymaking
+depend: [Essentials]
