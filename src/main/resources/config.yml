@@ -1,0 +1,15 @@
+# Настройки пропуска ночи
+enabled-worlds:
+  - "world"
+
+# Время дня и ночи (в тиках Minecraft)
+day-time: 1000
+night-time: 13000
+
+# Процент игроков для пропуска ночи (0.5 = 50%)
+sleep-percentage: 0.5
+
+# Сообщения
+messages:
+  night-skipping: "§aНочь пропускается..."
+  sleep-format: "§eСпят: %d/%d | Нужно ещё: %d"

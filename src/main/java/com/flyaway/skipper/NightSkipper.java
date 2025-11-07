@@ -2,6 +2,7 @@ package com.flyaway.skipper;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,22 +21,48 @@ public class NightSkipper extends JavaPlugin implements Listener {
     private final Set<String> recentlySkipped = new HashSet<>();
     private final Map<String, BukkitRunnable> actionBarTasks = new HashMap<>();
 
-    // Настройки
-    private long dayTime = 1000;
-    private long nightTime = 13000;
+    // Конфигурация
+    private List<String> enabledWorlds;
+    private long dayTime;
+    private long nightTime;
+    private double sleepPercentage;
+    private String nightSkippingMessage;
+    private String sleepFormatMessage;
 
     @Override
     public void onEnable() {
+        // Загружаем конфиг
+        saveDefaultConfig();
+        loadConfig();
+
         getServer().getPluginManager().registerEvents(this, this);
         essentialsHook = new EssentialsHook();
-        getLogger().info("NightSkipper включен!");
+        getLogger().info("NightSkipper включен! Разрешённые миры: " + enabledWorlds);
     }
 
     @Override
     public void onDisable() {
         recentlySkipped.clear();
-        Bukkit.getScheduler().cancelTasks(this); // отменяем все таски плагина
+        actionBarTasks.values().forEach(BukkitRunnable::cancel);
+        actionBarTasks.clear();
+        Bukkit.getScheduler().cancelTasks(this);
         getLogger().info("NightSkipper выключен!");
+    }
+
+    private void loadConfig() {
+        reloadConfig();
+        FileConfiguration config = getConfig();
+
+        // Загружаем настройки
+        enabledWorlds = config.getStringList("enabled-worlds");
+        dayTime = config.getLong("day-time", 1000);
+        nightTime = config.getLong("night-time", 13000);
+        sleepPercentage = config.getDouble("sleep-percentage", 0.5);
+        nightSkippingMessage = config.getString("messages.night-skipping", "§aНочь пропускается...");
+        sleepFormatMessage = config.getString("messages.sleep-format", "§eСпят: %d/%d | Нужно ещё: %d");
+
+        // Валидация значений
+        sleepPercentage = Math.max(0.1, Math.min(1.0, sleepPercentage));
     }
 
     @EventHandler
@@ -43,7 +70,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         World world = player.getWorld();
 
-        if (!isNightTime(world) && !world.isThundering()) return;
+        if (!isWorldEnabled(world) || !isNightTime(world) && !world.isThundering()) return;
         if (event.getBedEnterResult() != PlayerBedEnterEvent.BedEnterResult.OK) return;
 
         Bukkit.getScheduler().runTaskLater(this, () -> {
@@ -55,12 +82,24 @@ public class NightSkipper extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerBedLeave(PlayerBedLeaveEvent event) {
-        scheduleTempActionBar(event.getPlayer().getWorld());
+        Player player = event.getPlayer();
+        World world = player.getWorld();
+
+        if (!isWorldEnabled(world) || !isNightTime(world) && !world.isThundering()) return;
+        scheduleTempActionBar(world);
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        scheduleTempActionBar(event.getPlayer().getWorld());
+        Player player = event.getPlayer();
+        World world = player.getWorld();
+
+        if (!isWorldEnabled(world) || !isNightTime(world) && !world.isThundering()) return;
+        scheduleTempActionBar(world);
+    }
+
+    private boolean isWorldEnabled(World world) {
+        return enabledWorlds.contains(world.getName());
     }
 
     private void scheduleTempActionBar(World world) {
@@ -99,7 +138,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
         int totalPlayers = getTotalPlayers(world);
         int sleepingCount = getSleepingPlayersCount(world);
 
-        int needed = Math.max(0, (int) Math.ceil(totalPlayers * 0.5) - sleepingCount);
+        int needed = Math.max(0, (int) Math.ceil(totalPlayers * sleepPercentage) - sleepingCount);
 
         if (needed == 0) {
             startSkippingNight(world);
@@ -120,7 +159,6 @@ public class NightSkipper extends JavaPlugin implements Listener {
 
     private int getSleepingPlayersCount(World world) {
         int count = 0;
-        String worldName = world.getName();
         for (Player player : world.getPlayers()) {
             if (!essentialsHook.isVanished(player) && !shouldIgnorePlayer(player)) {
                 if (player.isSleeping() || essentialsHook.isAFK(player)) {
@@ -128,7 +166,6 @@ public class NightSkipper extends JavaPlugin implements Listener {
                 }
             }
         }
-
         return count;
     }
 
@@ -141,9 +178,9 @@ public class NightSkipper extends JavaPlugin implements Listener {
         String worldName = world.getName();
         recentlySkipped.add(worldName);
 
-        // Сначала отправляем сообщение игрокам
+        // Отправляем сообщение игрокам
         for (Player player : world.getPlayers()) {
-            player.sendMessage("§aНочь пропускается...");
+            player.sendMessage(nightSkippingMessage);
         }
 
         // Через 2 секунды выполняем фактический пропуск ночи
@@ -156,7 +193,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
             for (Player player : world.getPlayers()) {
                 if (player.isSleeping()) player.wakeup(false);
             }
-        }, 40L); // 40 тиков = 2 секунды
+        }, 40L);
 
         // Через 10 секунд снимаем защиту recentlySkipped
         Bukkit.getScheduler().runTaskLater(this, () -> recentlySkipped.remove(worldName), 200L);
@@ -165,10 +202,9 @@ public class NightSkipper extends JavaPlugin implements Listener {
     private void updateSleepMessages(World world) {
         int totalPlayers = getTotalPlayers(world);
         int sleepingCount = getSleepingPlayersCount(world);
-        int needed = Math.max(0, (int) Math.ceil(totalPlayers * 0.5) - sleepingCount);
+        int needed = Math.max(0, (int) Math.ceil(totalPlayers * sleepPercentage) - sleepingCount);
 
-        String message = String.format("§eСпят: %d/%d | Нужно ещё: %d",
-                sleepingCount, totalPlayers, needed);
+        String message = String.format(sleepFormatMessage, sleepingCount, totalPlayers, needed);
 
         for (Player player : world.getPlayers()) {
             if (player.isOnline()) player.sendActionBar(message);
