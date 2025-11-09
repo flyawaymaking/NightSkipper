@@ -7,7 +7,7 @@ import org.bukkit.plugin.Plugin;
 import java.lang.reflect.Method;
 
 public class EssentialsHook {
-    private Plugin essentials;
+    private final Plugin essentials;
     private Method getUserMethod;
     private Method isAfkMethod;
     private Method isVanishedMethod;

@@ -1,5 +1,7 @@
 package com.flyaway.skipper;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -10,7 +12,6 @@ import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -58,8 +59,8 @@ public class NightSkipper extends JavaPlugin implements Listener {
         dayTime = config.getLong("day-time", 1000);
         nightTime = config.getLong("night-time", 13000);
         sleepPercentage = config.getDouble("sleep-percentage", 0.5);
-        nightSkippingMessage = config.getString("messages.night-skipping", "§aНочь пропускается...");
-        sleepFormatMessage = config.getString("messages.sleep-format", "§eСпят: %d/%d | Нужно ещё: %d");
+        nightSkippingMessage = config.getString("messages.night-skipping", "<green>Ночь пропускается...");
+        sleepFormatMessage = config.getString("messages.sleep-format", "<yellow>Спят: <gold>%d/%d</gold> | Нужно ещё: <red>%d</red>");
 
         // Валидация значений
         sleepPercentage = Math.max(0.1, Math.min(1.0, sleepPercentage));
@@ -118,8 +119,9 @@ public class NightSkipper extends JavaPlugin implements Listener {
                 updateSleepMessages(world);
                 ticksPassed += 10;
                 if (ticksPassed >= 40) { // 2 секунды
+                    Component empty = Component.empty();
                     for (Player player : world.getPlayers()) {
-                        player.sendActionBar("");
+                        player.sendActionBar(empty);
                     }
                     actionBarTasks.remove(worldName);
                     cancel();
@@ -170,8 +172,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
     }
 
     private boolean shouldIgnorePlayer(Player player) {
-        return player.getGameMode() == org.bukkit.GameMode.SPECTATOR ||
-               player.hasPermission("essentials.sleepingignored");
+        return player.getGameMode() == org.bukkit.GameMode.SPECTATOR || player.hasPermission("essentials.sleepingignored");
     }
 
     private void startSkippingNight(World world) {
@@ -204,10 +205,12 @@ public class NightSkipper extends JavaPlugin implements Listener {
         int sleepingCount = getSleepingPlayersCount(world);
         int needed = Math.max(0, (int) Math.ceil(totalPlayers * sleepPercentage) - sleepingCount);
 
-        String message = String.format(sleepFormatMessage, sleepingCount, totalPlayers, needed);
+        String rawMessage = String.format(sleepFormatMessage, sleepingCount, totalPlayers, needed);
+
+        Component component = MiniMessage.miniMessage().deserialize(rawMessage);
 
         for (Player player : world.getPlayers()) {
-            if (player.isOnline()) player.sendActionBar(message);
+            if (player.isOnline()) player.sendActionBar(component);
         }
     }
 

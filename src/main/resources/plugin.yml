@@ -1,5 +1,5 @@
 name: NightSkipper
-version: 1.1.0
+version: 1.1.1
 main: com.flyaway.skipper.NightSkipper
 api-version: 1.21
 description: Пропускает ночь, когда спит половина игроков

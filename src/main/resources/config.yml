@@ -11,5 +11,5 @@ sleep-percentage: 0.5
 
 # Сообщения
 messages:
-  night-skipping: "§aНочь пропускается..."
-  sleep-format: "§eСпят: %d/%d | Нужно ещё: %d"
+  night-skipping: "<green>Ночь пропускается..."
+  sleep-format: "<yellow>Спят: <gold>%d/%d</gold> | Нужно ещё: <red>%d</red>"
