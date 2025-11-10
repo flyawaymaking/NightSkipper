@@ -21,6 +21,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
     private EssentialsHook essentialsHook;
     private final Set<String> recentlySkipped = new HashSet<>();
     private final Map<String, BukkitRunnable> actionBarTasks = new HashMap<>();
+    private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     // Конфигурация
     private List<String> enabledWorlds;
@@ -179,9 +180,10 @@ public class NightSkipper extends JavaPlugin implements Listener {
         String worldName = world.getName();
         recentlySkipped.add(worldName);
 
+        Component component = miniMessage.deserialize(nightSkippingMessage);
         // Отправляем сообщение игрокам
         for (Player player : world.getPlayers()) {
-            player.sendMessage(nightSkippingMessage);
+            player.sendMessage(component);
         }
 
         // Через 2 секунды выполняем фактический пропуск ночи
@@ -207,7 +209,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
 
         String rawMessage = String.format(sleepFormatMessage, sleepingCount, totalPlayers, needed);
 
-        Component component = MiniMessage.miniMessage().deserialize(rawMessage);
+        Component component = miniMessage.deserialize(rawMessage);
 
         for (Player player : world.getPlayers()) {
             if (player.isOnline()) player.sendActionBar(component);
