@@ -119,7 +119,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
             public void run() {
                 updateSleepMessages(world);
                 ticksPassed += 10;
-                if (ticksPassed >= 40) { // 2 секунды
+                if (ticksPassed >= 60) { // 3 секунды
                     Component empty = Component.empty();
                     for (Player player : world.getPlayers()) {
                         player.sendActionBar(empty);
@@ -186,7 +186,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
             player.sendMessage(component);
         }
 
-        // Через 2 секунды выполняем фактический пропуск ночи
+        // Через 3 секунды выполняем фактический пропуск ночи
         Bukkit.getScheduler().runTaskLater(this, () -> {
             world.setTime(dayTime);
             world.setStorm(false);
@@ -196,7 +196,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
             for (Player player : world.getPlayers()) {
                 if (player.isSleeping()) player.wakeup(false);
             }
-        }, 40L);
+        }, 60L);
 
         // Через 10 секунд снимаем защиту recentlySkipped
         Bukkit.getScheduler().runTaskLater(this, () -> recentlySkipped.remove(worldName), 200L);
