@@ -1,8 +1,18 @@
 name: NightSkipper
-version: 1.2.0
+version: 1.0
 main: com.flyaway.skipper.NightSkipper
 api-version: 1.21
-description: Пропускает ночь, когда спит половина игроков
+description: Пропускает ночь, когда спит нужный % игроков
 author: FlyAwayMaking
 website: https://github.com/flyawaymaking
 depend: [Essentials]
+
+commands:
+  nskipper:
+    description: Команды NightSkipper
+    usage: /<command> reload
+
+permissions:
+  nskipper.admin:
+    description: Позволяет использовать команду /nskipper reload
+    default: op

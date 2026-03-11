@@ -1,15 +1,21 @@
+# Не изменяйте это значение!
+version: 1
+
 # Настройки пропуска ночи
 enabled-worlds:
   - "world"
 
-# Время дня и ночи (в тиках Minecraft)
-day-time: 1000
-night-time: 13000
+# Время начала дня и ночи (в тиках Minecraft)
+day-time: 0
+night-time: 12516
 
 # Процент игроков для пропуска ночи (0.5 = 50%)
 sleep-percentage: 0.5
 
-# Сообщения
+# Сообщения с поддержкой MiniMessage
 messages:
+  no-permission: "<red>У вас нет прав для этой команды."
+  reload-success: "<green>NightSkipper: конфиг перезагружен!"
+  reload-usage: "<yellow>Использование: /nskipper reload"
   night-skipping: "<green>Ночь пропускается..."
-  sleep-format: "<yellow>Спят: <gold>%d/%d</gold> | Нужно ещё: <red>%d</red>"
+  sleep-progress: "<yellow>Спят: <gold>{sleeping}/{total}</gold> | Нужно ещё: <red>{needed}</red>"
