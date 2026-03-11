@@ -77,7 +77,7 @@ messages:
 
 ## 🧠 Совместимость
 
-- **Paper:** 1.21+
+- **Paper:** 1.20+
 - **Зависимости:** *(необязательно)* [EssentialsX](https://essentialsx.net/) (для AFK и Vanish)
 
 ## ⚡ Быстрый старт
