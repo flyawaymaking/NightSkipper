@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
-import org.bukkit.GameRule;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -24,7 +23,6 @@ public class NightSkipper extends JavaPlugin implements Listener {
     private FileConfiguration config;
 
     private final Set<String> recentlySkipped = new HashSet<>();
-    private final Map<String, Integer> oldSleepPercentages = new HashMap<>();
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     private List<String> enabledWorlds;
@@ -37,16 +35,6 @@ public class NightSkipper extends JavaPlugin implements Listener {
         saveDefaultConfig();
         config = migrateMainConfig();
         loadData();
-
-        for (World world : Bukkit.getWorlds()) {
-            if (enabledWorlds.contains(world.getName())) {
-                Integer value = world.getGameRuleValue(GameRule.PLAYERS_SLEEPING_PERCENTAGE);
-                int oldValue = (value != null) ? value : 100;
-                oldSleepPercentages.put(world.getName(), oldValue);
-
-                world.setGameRule(GameRule.PLAYERS_SLEEPING_PERCENTAGE, 101);
-            }
-        }
 
         getServer().getPluginManager().registerEvents(this, this);
 
@@ -61,14 +49,6 @@ public class NightSkipper extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        for (World world : Bukkit.getWorlds()) {
-            if (enabledWorlds.contains(world.getName())) {
-                Integer oldValue = oldSleepPercentages.get(world.getName());
-                if (oldValue != null) {
-                    world.setGameRule(org.bukkit.GameRule.PLAYERS_SLEEPING_PERCENTAGE, oldValue);
-                }
-            }
-        }
         recentlySkipped.clear();
     }
 
@@ -99,10 +79,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
         FileConfiguration config = getConfig();
 
         YamlConfiguration defaultConfig;
-        try (InputStreamReader reader = new InputStreamReader(
-                Objects.requireNonNull(getResource("config.yml")),
-                StandardCharsets.UTF_8
-        )) {
+        try (InputStreamReader reader = new InputStreamReader(Objects.requireNonNull(getResource("config.yml")), StandardCharsets.UTF_8)) {
             defaultConfig = YamlConfiguration.loadConfiguration(reader);
         } catch (Exception e) {
             getLogger().severe("Failed to load default config.yml");
@@ -113,8 +90,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
         int fileVersion = config.getInt("version", 0);
 
         if (fileVersion < currentVersion) {
-            getLogger().info("Updating config.yml from version "
-                    + fileVersion + " to " + currentVersion);
+            getLogger().info("Updating config.yml from version " + fileVersion + " to " + currentVersion);
 
             config.setDefaults(defaultConfig);
             config.options().copyDefaults(true);
@@ -233,20 +209,14 @@ public class NightSkipper extends JavaPlugin implements Listener {
 
         }, 60L);
 
-        Bukkit.getScheduler().runTaskLater(this,
-                () -> recentlySkipped.remove(worldName),
-                200L
-        );
+        Bukkit.getScheduler().runTaskLater(this, () -> recentlySkipped.remove(worldName), 200L);
     }
 
     private void sendSleepMessage(World world, int sleeping, int total, int needed) {
         String template = getMessage("sleep-progress");
         if (template.isEmpty()) return;
 
-        String raw = template
-                .replace("{sleeping}", String.valueOf(sleeping))
-                .replace("{total}", String.valueOf(total))
-                .replace("{needed}", String.valueOf(needed));
+        String raw = template.replace("{sleeping}", String.valueOf(sleeping)).replace("{total}", String.valueOf(total)).replace("{needed}", String.valueOf(needed));
 
         Component component = miniMessage.deserialize(raw);
 
@@ -260,8 +230,7 @@ public class NightSkipper extends JavaPlugin implements Listener {
     }
 
     private boolean shouldIgnorePlayer(Player player) {
-        return player.getGameMode() == GameMode.SPECTATOR
-                || player.hasPermission("essentials.sleepingignored");
+        return player.getGameMode() == GameMode.SPECTATOR || player.hasPermission("essentials.sleepingignored");
     }
 
     private boolean isNightTime(World world) {
