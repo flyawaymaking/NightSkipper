@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'io.papermc.paper:paper-api:26.2.build.84-stable'
+    compileOnly 'io.papermc.paper:paper-api:26.3.build.159-beta'
     compileOnly 'net.essentialsx:EssentialsX:2.21.2'
 }
 
