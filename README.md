@@ -1,5 +1,8 @@
 # 🌙 NightSkipper — умный пропуск ночи в Minecraft
 
+[![Modrinth Downloads](https://img.shields.io/modrinth/dt/nightskipper?logo=modrinth&label=downloads&color=1bd96a)](https://modrinth.com/plugin/nightskipper)
+[![Modrinth Followers](https://img.shields.io/modrinth/followers/nightskipper?logo=modrinth&label=followers&color=1bd96a)](https://modrinth.com/plugin/nightskipper)
+
 **NightSkipper** — лёгкий и надёжный плагин для Paper, который автоматически пропускает ночь,  
 когда спит **настроенный процент игроков** в мире. Поддерживает **EssentialsX AFK**, **vanish** и **спектатор-режим**.
 
